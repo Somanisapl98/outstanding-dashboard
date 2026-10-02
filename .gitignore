@@ -1,0 +1,12 @@
+Input/
+Output/
+Logs/
+Archive/
+Config/
+Scripts/
+*.xlsx
+*.xls
+*.csv
+*.pdf
+*.log
+!dashboard-data.json

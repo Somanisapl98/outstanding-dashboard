@@ -1,6 +1,13 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Outstanding Dashboard</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f2f6fb;color:#14213d;font:14px Segoe UI,Arial}.wrap{max-width:1700px;margin:auto;padding:18px}.hero{background:linear-gradient(135deg,#071a33,#1769e0);color:#fff;padding:24px;border-radius:20px}.hero h1{margin:0}.hero p{margin:5px 0}.cards{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;margin:14px 0}.card{height:auto;min-height:95px;background:#fff;border:0;border-left:5px solid #1769e0;border-radius:15px;padding:16px;text-align:left;box-shadow:0 8px 20px #1232;cursor:pointer}.card b{display:block;font-size:25px;margin-top:6px}.filters{display:grid;grid-template-columns:1.4fr 1fr 1fr 160px 150px 150px auto auto;gap:10px;background:#fff;padding:13px;border-radius:15px;margin-bottom:12px}input,select,button{height:42px;border:1px solid #cbd8e6;border-radius:10px;padding:0 12px;font:inherit}button{font-weight:700;cursor:pointer}.primary{background:#1769e0;color:white}.tablewrap{overflow:auto;max-height:68vh;background:#fff;border-radius:14px;border:1px solid #d8e2ef}table{border-collapse:collapse;min-width:1900px;width:100%}th,td{padding:8px;border-bottom:1px solid #e5edf5;white-space:nowrap;text-align:left}th{position:sticky;top:0;background:#12345b;color:white}.num{text-align:right}.pill{padding:4px 8px;border-radius:12px;background:#e9f2ff;font-size:12px}.foot{padding:12px;color:#64748b}@media(max-width:800px){.cards{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr}.tablewrap{max-height:none}}
-</style></head><body><div class="wrap"><div class="hero"><h1>Outstanding Reconciliation Dashboard</h1><p>Tally base comparison with AlignBook and E-Dukan</p><div id="updated"></div></div><div id="cards" class="cards"></div><div class="filters"><input id="q" placeholder="Search invoice, party, code, branch or salesman"><select id="status"></select><select id="branch"></select><select id="recordType"><option value="ALL">All Bill Types</option><option value="FREIGHT">Freight</option><option value="STANDARD">Standard Bills</option></select><select id="dateSource"><option value="ANY">Any Available Date</option><option value="alignDate">AlignBook Bill Date</option><option value="edukanDate">E-Dukan Bill Date</option><option value="tallyDate">Tally Bill Date</option></select><input id="fromDate" type="date" title="From Date"><input id="toDate" type="date" title="To Date"><button id="clear">Clear</button><button id="export" class="primary">Export Filtered CSV</button></div><div class="tablewrap"><table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div><div id="shown" class="foot"></div></div><script src="data.js"></script><script>
+</style><style id="dashboardUpdatedStyle">
+#dashboardUpdatedBadge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:#e8f5e9;color:#176b32;font-weight:700;font-size:13px;border:1px solid #b7dfbf;box-shadow:0 2px 8px rgba(0,0,0,.06);margin:6px 0 12px}
+#dashboardUpdatedBadge .updatedDot{width:8px;height:8px;border-radius:50%;background:#20a34a;box-shadow:0 0 0 3px rgba(32,163,74,.15)}
+</style>
+<style id="excelExportStyle">
+#exportVisibleExcel{background:#107c41;color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:700;cursor:pointer;margin-left:8px}#exportVisibleExcel:hover{background:#0b6333}
+</style>
+</head><body><div class="wrap"><div class="hero"><h1>Outstanding Reconciliation Dashboard</h1><p>Tally base comparison with AlignBook and E-Dukan</p><div id="updated"></div></div><div id="cards" class="cards"></div><div class="filters"><input id="q" placeholder="Search invoice, party, code, branch or salesman"><select id="status"></select><select id="branch"></select><select id="recordType"><option value="ALL">All Bill Types</option><option value="FREIGHT">Freight</option><option value="STANDARD">Standard Bills</option></select><select id="dateSource"><option value="ANY">Any Available Date</option><option value="alignDate">AlignBook Bill Date</option><option value="edukanDate">E-Dukan Bill Date</option><option value="tallyDate">Tally Bill Date</option></select><input id="fromDate" type="date" title="From Date"><input id="toDate" type="date" title="To Date"><button id="clear">Clear</button><button id="export" class="primary">Export Filtered CSV</button></div><div class="tablewrap"><table><thead><tr id="head"></tr></thead><tbody id="body"></tbody></table></div><div id="shown" class="foot"></div></div><script src="data.js"></script><script>
 const D=window.OUTSTANDING_DATA||{meta:{counts:{}},rows:[]},$=x=>document.getElementById(x),money=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(+n||0),esc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]));
 const cols=[['status','Result'],['invoice','Invoice'],['rawInvoice','Raw Invoice'],['removedSuffix','Removed Suffix'],['recordType','Bill Type'],['tallyRawReference','Tally Raw Reference'],['tallyOpening','Tally Opening'],['tallyPending','Tally Pending'],['tallyDueDate','Tally Due Date'],['tallyOverdue','Tally Overdue Days'],['alignDate','AlignBook Date'],['alignParty','AlignBook Party'],['alignCode','AlignBook Code'],['alignAmount','AlignBook Amount'],['edukanDate','E-Dukan Date'],['edukanParty','E-Dukan Party'],['edukanCode','E-Dukan Account ID'],['edukanAmount','E-Dukan Amount'],['tallyDate','Tally Date'],['tallyParty','Tally Party'],['tallyCode','Tally Code'],['tallyAmount','Tally Amount'],['branch','Branch'],['salesman','Salesman'],['codeCheck','Code Check']];
 $('head').innerHTML=cols.map(x=>`<th>${x[1]}</th>`).join('');$('updated').textContent='Updated: '+(D.meta.updatedAt||'')+' | '+Object.values(D.meta.files||{}).join(' | ');
@@ -10,4 +17,45 @@ const c=D.meta.counts||{},cards=[['Manual Review',c.manualReview||0,'MANUAL REVI
 function filter(){let q=$('q').value.toLowerCase(),s=$('status').value,b=$('branch').value,rt=$('recordType').value;view=D.rows.filter(r=>{let stat=s==='ALL'||r.status===s;if(s==='ALL NOT')stat=r.status!=='IN TALLY';return stat&&(b==='ALL'||r.branch===b)&&(rt==='ALL'||r.recordType===rt)&&dateMatch(r)&&(!q||Object.values(r).join(' ').toLowerCase().includes(q))});render()}
 function render(){$('body').innerHTML=view.map(r=>`<tr>${cols.map(([k])=>`<td class="${(k.toLowerCase().includes('amount')||k==='tallyOpening'||k==='tallyPending')?'num':''}">${(k.toLowerCase().includes('amount')||k==='tallyOpening'||k==='tallyPending')?money(r[k]):(k==='status'?`<span class="pill">${esc(r[k])}</span>`:esc(r[k]))}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="23">No matching bills</td></tr>`;$('shown').textContent=`Showing ${view.length} bills`}
 $('q').oninput=filter;$('status').onchange=filter;$('branch').onchange=filter;$('recordType').onchange=filter;$('dateSource').onchange=filter;$('fromDate').onchange=filter;$('toDate').onchange=filter;$('clear').onclick=()=>{$('q').value='';$('status').value='ALL';$('branch').value='ALL';$('recordType').value='ALL';$('dateSource').value='ANY';$('fromDate').value='';$('toDate').value='';filter()};document.querySelectorAll('.card').forEach(x=>x.onclick=()=>{$('status').value=x.dataset.s==='ALL NOT'?'ALL':x.dataset.s;if(x.dataset.s==='ALL NOT'){view=D.rows.filter(r=>['ALIGNBOOK NOT IN TALLY','E-DUKAN NOT IN TALLY','BOTH SOURCES NOT IN TALLY'].includes(r.status)&&dateMatch(r));render()}else if(x.dataset.s==='TALLY NOT ALIGN'){view=D.rows.filter(r=>['TALLY NOT IN ALIGNBOOK','TALLY NOT IN BOTH'].includes(r.status)&&dateMatch(r));render()}else if(x.dataset.s==='TALLY NOT EDU'){view=D.rows.filter(r=>['TALLY NOT IN E-DUKAN','TALLY NOT IN BOTH'].includes(r.status)&&dateMatch(r));render()}else filter()});$('export').onclick=()=>{let rows=[cols.map(x=>x[1]),...view.map(r=>cols.map(x=>r[x[0]]))],csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'}));a.download=`Outstanding_Filtered_${$('fromDate').value||'start'}_to_${$('toDate').value||'end'}.csv`;a.click()};filter();
-</script></body></html>
+</script><script id="dashboardUpdatedScript">
+(function(){
+  function safeText(value){
+    return String(value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  function showDashboardUpdated(){
+    if(document.getElementById('dashboardUpdatedBadge')) return;
+    var data=window.DATA||window.DASHBOARD_DATA||window.OUTSTANDING_DATA||{};
+    var meta=data.meta||{};
+    var value=meta.dashboardUpdatedAt||meta.generatedAt||meta.updatedAt||'Not available';
+    var badge=document.createElement('div');
+    badge.id='dashboardUpdatedBadge';
+    badge.innerHTML='<span class="updatedDot"></span><span>Dashboard Updated: '+safeText(value)+'</span>';
+    var title=document.querySelector('h1,h2,.title,.header-title,.dashboard-title');
+    if(title&&title.parentNode){title.parentNode.insertBefore(badge,title.nextSibling);}
+    else{document.body.insertBefore(badge,document.body.firstChild);}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',showDashboardUpdated);
+  else showDashboardUpdated();
+})();
+</script>
+<script id="excelExportScript">
+(function(){
+ function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+ function addButton(){
+  if(document.getElementById('exportVisibleExcel'))return;
+  var csv=[].slice.call(document.querySelectorAll('button,a')).find(function(x){return /export filtered csv/i.test(x.textContent||'');});
+  if(!csv)return;
+  var b=document.createElement('button');b.id='exportVisibleExcel';b.type='button';b.textContent='Download Excel';
+  b.onclick=function(){
+   var table=document.querySelector('table');if(!table){alert('Dashboard table not found');return;}
+   var rows=[].slice.call(table.querySelectorAll('tr')).filter(function(r){return r.offsetParent!==null;});
+   var html='<html><head><meta charset="utf-8"></head><body><table border="1">'+rows.map(function(r){return '<tr>'+[].slice.call(r.children).map(function(c){return '<td>'+esc(c.innerText)+'</td>';}).join('')+'</tr>';}).join('')+'</table></body></html>';
+   var blob=new Blob(['﻿',html],{type:'application/vnd.ms-excel'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Outstanding_Dashboard_Filtered_'+new Date().toISOString().slice(0,10)+'.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  };
+  csv.insertAdjacentElement('afterend',b);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addButton);else addButton();
+ setTimeout(addButton,1000);
+})();
+</script>
+</body></html>
